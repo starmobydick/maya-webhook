@@ -1,11 +1,11 @@
 {
   "name": "maya-webhook",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Bare-bones Twilio + web simulator webhook for Maya HVAC demo. Rate-limited via Upstash Redis, talks to Claude Sonnet directly.",
+  "description": "Bare-bones Twilio + web simulator webhook for Maya HVAC demo. Rate-limited via Upstash Redis, talks to Groq Llama 3.3 70B via the OpenAI-compatible API.",
   "engines": { "node": ">=20" },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0",
+    "openai": "^4.70.0",
     "@upstash/redis": "^1.34.0",
     "twilio": "^5.0.0"
   }

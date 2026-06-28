@@ -1,5 +1,5 @@
 import { checkAndIncrement, getHistory, appendHistory } from "../lib/redis.js";
-import { ask } from "../lib/claude.js";
+import { ask } from "../lib/llm.js";
 import { CAP_REACHED_MESSAGE } from "../lib/prompt.js";
 
 const WEB_LIMIT_PER_DAY = 20;         // higher than SMS — no carrier cost
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     const { text } = await ask(history, message);
     reply = text;
   } catch (err) {
-    console.error("Claude error:", err);
+    console.error("LLM error:", err);
     return res.status(502).json({ reply: "Connection hiccup — try once more." });
   }
 

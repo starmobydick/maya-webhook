@@ -9,7 +9,7 @@ A ~200-line Vercel serverless app that:
 1. Handles inbound SMS from Twilio (`/api/sms`)
 2. Handles inbound web chat from the iPhone-style simulator (`/api/chat`)
 3. Enforces a Redis-backed rate limit at the webhook layer (4 SMS/phone/24h, 20 web/IP/24h)
-4. Calls Claude Sonnet directly with a ~250-token system prompt — bypassing Hyperagent's runtime to keep token cost minimal
+4. Calls Groq's Llama 3.3 70B (free tier, OpenAI-compatible API) with a ~250-token system prompt — bypassing Hyperagent's runtime to keep token cost minimal and latency under 500ms
 
 ## Why it exists
 
@@ -27,7 +27,7 @@ maya-webhook/
 │   └── health.js    # Liveness probe
 ├── lib/
 │   ├── prompt.js    # System prompt — single source of truth for Maya's logic
-│   ├── claude.js    # Anthropic SDK wrapper
+│   ├── llm.js       # OpenAI-SDK wrapper pointed at Groq (swappable)
 │   └── redis.js     # Upstash rate-limit + conversation state
 ├── vercel.json
 ├── package.json
@@ -38,11 +38,11 @@ maya-webhook/
 
 | Var | Source |
 |---|---|
-| `ANTHROPIC_API_KEY` | console.anthropic.com |
+| `GROQ_API_KEY` | console.groq.com (free, no credit card) |
 | `UPSTASH_REDIS_REST_URL` | Upstash DB → REST API tab |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash DB → REST API tab |
 | `TWILIO_AUTH_TOKEN` | Twilio console → Account → API keys |
-| `MAYA_MODEL` (optional) | Defaults to `claude-sonnet-4-5` |
+| `MAYA_MODEL` (optional) | Defaults to `llama-3.3-70b-versatile` |
 
 ## Local dev
 

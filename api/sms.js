@@ -1,6 +1,6 @@
 import twilio from "twilio";
 import { checkAndIncrement, getHistory, appendHistory } from "../lib/redis.js";
-import { ask } from "../lib/claude.js";
+import { ask } from "../lib/llm.js";
 import { CAP_REACHED_MESSAGE } from "../lib/prompt.js";
 
 const SMS_LIMIT_PER_DAY = 4;          // audit spec: 4 msgs / phone / 24h
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const { text } = await ask(history, messageBody);
     replyText = text;
   } catch (err) {
-    console.error("Claude error:", err);
+    console.error("LLM error:", err);
     replyText = "Sorry — having a hiccup on my end. Try once more in a sec?";
   }
 

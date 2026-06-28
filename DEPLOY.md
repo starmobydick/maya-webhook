@@ -6,7 +6,7 @@ You'll wire up:
 
 - **Upstash Redis** — rate-limit counter + conversation state (free tier, 10k cmds/day)
 - **Vercel** — serverless host for the webhook (free tier, plenty for TikTok traffic)
-- **Anthropic API key** — Claude Sonnet for the LLM calls
+- **Groq API key** — Llama 3.3 70B for the LLM calls (free tier, no credit card)
 - **Twilio** — point your existing number's webhook at the new endpoint
 - **Hyperagent simulator artifact** — paste the Vercel `/chat` URL into the simulator's `BACKEND_URL` constant and republish
 
@@ -23,11 +23,13 @@ You'll wire up:
 
 ---
 
-## 2. Anthropic API key (2 min)
+## 2. Groq API key (2 min, $0)
 
-1. Go to <https://console.anthropic.com> → **Settings → API Keys** → **Create Key**.
-2. Name it `maya-webhook-prod`. Copy the key (starts with `sk-ant-`).
-3. Optional but recommended: in **Settings → Limits**, set a monthly spend cap (e.g. $50) as a final backstop.
+1. Go to <https://console.groq.com> → sign in with Google or GitHub.
+2. **API Keys** → **Create API Key** → name it `maya-webhook-prod`.
+3. Copy the key (starts with `gsk_`). No credit card needed.
+
+Free tier: **14,400 requests/day, 30/min** on `llama-3.3-70b-versatile`. That's ~3,600 conversations/day — well above what TikTok will throw at you at launch.
 
 ---
 
@@ -38,7 +40,7 @@ You'll wire up:
 cd maya-webhook
 npm install
 npx vercel        # follow prompts; pick "Create new project"
-npx vercel env add ANTHROPIC_API_KEY production
+npx vercel env add GROQ_API_KEY production
 npx vercel env add UPSTASH_REDIS_REST_URL production
 npx vercel env add UPSTASH_REDIS_REST_TOKEN production
 npx vercel env add TWILIO_AUTH_TOKEN production
@@ -117,7 +119,7 @@ On message 5 you should see Twilio receive back:
 ```
 Demo limit reached. To see more, book a live platform tour here: https://calendly.com/duy-heatbooker/30min
 ```
-…and **the Anthropic dashboard should show only 4 calls**, not 5. That confirms LLM is skipped on capped users.
+…and **the Groq console should show only 4 calls**, not 5. That confirms LLM is skipped on capped users.
 
 > ⚠️ In production, Twilio signature verification will REJECT these curl requests with `403`. Comment out the verification block in `api/sms.js` temporarily for the smoke test, then re-enable.
 
@@ -133,7 +135,7 @@ Before posting your TikTok bio link:
 - [ ] Spam test: send 5 SMS rapidly → 5th reply is "Demo limit reached"
 - [ ] Web simulator: open the published Hyperagent artifact URL → flow works
 - [ ] Web simulator: spam 21 messages → 21st reply is cap-reached
-- [ ] Anthropic monthly spend cap is set
+- [ ] Groq console shows incoming requests (proves LLM is wired)
 - [ ] Upstash dashboard shows commands incrementing (proves Redis is wired)
 - [ ] Calendly link in the closing message is correct: `https://calendly.com/duy-heatbooker/30min`
 - [ ] Twilio number's SMS webhook URL matches the deployed Vercel URL
@@ -146,4 +148,6 @@ Before posting your TikTok bio link:
 
 **Monitoring**: Vercel dashboard shows per-endpoint latency and error rates. For uptime alerts, point UptimeRobot (free) at `/api/health` with a 5-min check interval.
 
-**Cost ceiling**: with rate limits + bare-bones prompt, expect ~$6 per 1000 conversations on Anthropic, plus Twilio SMS ($0.0079/msg). Even at 100k conversations/month you'd be under $700 LLM + $630 Twilio — and the web simulator drives that even lower.
+**Cost ceiling**: with Groq's free tier you pay $0 in LLM costs up to 14,400 req/day. Twilio SMS is $0.0079/msg. If you ever cross the free tier, paid Groq is ~$0.59/M input tokens — roughly $1.50 per 1000 conversations. Even 100k conversations/month stays under $150 LLM.
+
+**Switching LLM providers later**: `lib/llm.js` uses the OpenAI SDK shape, so swapping to OpenAI / Cerebras / Together / any OpenAI-compatible endpoint is just changing `baseURL` and `apiKey` (and the model name). Anthropic SDK shape is different — switching back to Claude requires re-importing `@anthropic-ai/sdk` and using `messages.create` instead.
